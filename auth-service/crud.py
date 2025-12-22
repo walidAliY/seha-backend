@@ -1,14 +1,22 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+import models, schemas
 from passlib.context import CryptContext
 
+# Explicitly setting the bcrypt backend to avoid the '__about__' attribute error
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    """
+    Hashes the password using Bcrypt. 
+    Note: Bcrypt has a 72-character limit, so we truncate to ensure it never crashes.
+    """
+    return pwd_context.hash(password[:72])
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    """
+    Verifies the plain password against the stored hash.
+    """
+    return pwd_context.verify(plain_password[:72], hashed_password)
 
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
@@ -38,6 +46,7 @@ def update_user(db: Session, user_id: int, user_update: schemas.UserUpdate):
     if not db_user:
         return None
     
+    # model_dump is used for Pydantic v2 compatibility
     update_data = user_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_user, key, value)

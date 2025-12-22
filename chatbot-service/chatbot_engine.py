@@ -15,10 +15,11 @@ class ChatbotEngine:
         
         # Initialize Gemini model with LangChain
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=self.gemini_api_key,
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=1000,
+            convert_system_message_to_human=True
         )
         
         # Service URLs

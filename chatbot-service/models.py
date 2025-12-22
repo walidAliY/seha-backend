@@ -22,5 +22,5 @@ class ChatMessage(Base):
     role = Column(String(20), nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
     attachments = Column(Text, nullable=True)  # JSON array of file URLs
-    metadata = Column(Text, nullable=True)  # JSON metadata
+    extra_info = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)

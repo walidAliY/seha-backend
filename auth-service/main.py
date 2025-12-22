@@ -3,17 +3,19 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from jose import JWTError, jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 import os
 from dotenv import load_dotenv
 
-from . import models, schemas, crud
-
+import models, schemas, crud
 load_dotenv()
 
-# Configuration
-SECRET_KEY = os.getenv("JWT_SECRET", "your-super-secret-key-change-this")
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+# Synchronized with Medical/Scheduling services to prevent 401 errors
+SECRET_KEY = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
@@ -37,13 +39,15 @@ def get_db():
     finally:
         db.close()
 
-# JWT functions
+# ============================================================================
+# JWT FUNCTIONS
+# ============================================================================
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -72,7 +76,10 @@ async def get_current_user(
         raise credentials_exception
     return user
 
-# Routes
+# ============================================================================
+# ROUTES
+# ============================================================================
+
 @app.get("/")
 def read_root():
     return {
@@ -83,7 +90,6 @@ def read_root():
 
 @app.post("/register", response_model=schemas.Token, status_code=status.HTTP_201_CREATED)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(
@@ -91,10 +97,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
-    # Create user
     new_user = crud.create_user(db, user)
     
-    # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": new_user.email, "user_id": new_user.user_id},
@@ -129,73 +133,12 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
         "user": user
     }
 
-@app.post("/login/form", response_model=schemas.Token)
-def login_form(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
-):
-    """OAuth2 compatible login endpoint for Swagger UI"""
-    user = crud.authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.user_id},
-        expires_delta=access_token_expires
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user
-    }
-
 @app.get("/me", response_model=schemas.UserResponse)
 def get_current_user_info(current_user: models.User = Depends(get_current_user)):
     return current_user
 
-@app.get("/users/{user_id}", response_model=schemas.UserResponse)
-def get_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    user = crud.get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    return user
-
-@app.put("/users/{user_id}", response_model=schemas.UserResponse)
-def update_user_info(
-    user_id: int,
-    user_update: schemas.UserUpdate,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    # Users can only update their own profile
-    if current_user.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this user"
-        )
-    
-    updated_user = crud.update_user(db, user_id, user_update)
-    if not updated_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    return updated_user
-
-@app.post("/verify-token")
+# UPDATED: Changed from POST to GET to fix 405 Method Not Allowed errors
+@app.get("/verify-token")
 def verify_token(current_user: models.User = Depends(get_current_user)):
     """Endpoint for other services to verify JWT tokens"""
     return {

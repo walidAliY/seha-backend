@@ -1,0 +1,20 @@
+# FastAPI framework for building APIs
+fastapi==0.104.1
+
+# ASGI server for running FastAPI
+uvicorn==0.24.0
+
+# SQLAlchemy ORM for database operations
+sqlalchemy==2.0.23
+
+# Pydantic for data validation
+pydantic==2.5.0
+
+# Python JWT for token verification
+pyjwt==2.8.0
+
+# HTTP client for calling other services
+httpx==0.25.2
+
+# Python dotenv for environment variables
+python-dotenv==1.0.0

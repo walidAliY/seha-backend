@@ -82,7 +82,7 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:8001
       - MEDICAL_SERVICE_URL=http://medical-service:8002
       - SCHEDULING_SERVICE_URL=http://scheduling-service:8003
-      -  GEMINI_API_KEY=AIzaSyD7fRLwHQ4du6kEM1iGsF7WBs_xpzWmbCU
+      -  GEMINI_API_KEY=your_gemini_api_key
       - JWT_SECRET=5f2b8c9d1e3a4b5c6d7e8f90a1b2c3d4
     volumes:
       - ./chatbot-service:/app

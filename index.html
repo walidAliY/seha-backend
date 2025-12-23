@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthCare Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; }
+        
+        .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .auth-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 400px; width: 90%; }
+        .logo { text-align: center; font-size: 2rem; margin-bottom: 30px; color: #667eea; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .switch-text { text-align: center; margin-top: 20px; color: #666; }
+        .switch-link { color: #667eea; cursor: pointer; text-decoration: underline; }
+        .hidden { display: none !important; }
+        
+        .main-app { display: flex; flex-direction: column; height: 100vh; }
+        .header { background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header-logo { font-size: 1.5rem; font-weight: 700; color: #667eea; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .user-badge { background: #667eea; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .btn-sm { padding: 8px 16px; font-size: 14px; width: auto; }
+        .btn-outline { background: white; color: #667eea; border: 2px solid #667eea; }
+        
+        .content-wrapper { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 250px; background: white; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .nav-item { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #333; }
+        .nav-item:hover { background: #f0f0f0; }
+        .nav-item.active { background: #667eea; color: white; }
+        
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: #333; }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: #667eea; }
+        .stat-label { color: #666; margin-top: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        th { background: #f8f8f8; font-weight: 600; }
+        tr:hover { background: #f8f8f8; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+        .modal.show { display: flex; }
+        .modal-box { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-close { font-size: 24px; cursor: pointer; color: #999; }
+        
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+        .alert-success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+
+    <!-- Auth Screen -->
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-box">
+            <div class="logo">🏥 HealthCare Pro</div>
+            
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h2 style="text-align: center; margin-bottom: 25px;">Welcome Back</h2>
+                <div id="loginError"></div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="handleLogin()">Login</button>
+                <div class="switch-text">
+                    Don't have an account? <span class="switch-link" onclick="switchToRegister()">Register</span>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <h2 style="text-align: center; margin-bottom: 25px;">Create Account</h2>
+                <div id="registerError"></div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="regPhone">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="regDob" max="2010-12-31">
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select id="regGender">
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="handleRegister()">Register</button>
+                <div class="switch-text">
+                    Already have an account? <span class="switch-link" onclick="switchToLogin()">Login</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="main-app hidden">
+        <div class="header">
+            <div class="header-logo">🏥 HealthCare Pro</div>
+            <div class="header-right">
+                <span id="userName">User</span>
+                <div class="user-badge" id="userBadge">U</div>
+                <button class="btn btn-sm btn-outline" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="content-wrapper">
+            <div class="sidebar">
+                <div class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</div>
+                <div class="nav-item" onclick="showPage('appointments')">📅 Appointments</div>
+                <div class="nav-item" onclick="showPage('doctors')">👨‍⚕️ Doctors</div>
+                <div class="nav-item" onclick="showPage('hospitals')">🏥 Hospitals</div>
+                <div class="nav-item" onclick="showPage('records')">📋 Records</div>
+                <div class="nav-item" onclick="showPage('chat')">💬 AI Chat</div>
+            </div>
+            
+            <div class="main-content">
+                <!-- Dashboard -->
+                <div id="dashboard" class="page">
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statAppointments">0</div>
+                            <div class="stat-label">Appointments</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statRecords">0</div>
+                            <div class="stat-label">Medical Records</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statDoctors">0</div>
+                            <div class="stat-label">Doctors Available</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title">Welcome to HealthCare Pro</h3>
+                        <p>Manage your health records, book appointments, and chat with our AI assistant.</p>
+                    </div>
+                </div>
+
+                <!-- Appointments -->
+                <div id="appointments" class="page hidden">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 class="card-title" style="margin: 0;">My Appointments</h3>
+                            <button class="btn btn-primary btn-sm" onclick="openAppointmentModal()">Book New</button>
+                        </div>
+                        <table id="appointmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Doctor</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Doctors -->
+                <div id="doctors" class="page hidden">
+                    <div class="card">
+                        <h3 class="card-title">Find a Doctor</h3>
+                        <div class="form-row" style="margin-bottom: 1.5rem;">
+                            <input type="text" id="doctorSearch" class="form-control" placeholder="Search by specialization...">
+                            <button onclick="searchDoctors()" class="btn btn-primary btn-sm">Search</button>
+                        </div>
+                        <div id="doctorsList">
+                            <p style="text-align: center; color: #999; padding: 40px;">No doctors found. Doctors will appear here once they register.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hospitals -->
+                <div id="hospitals" class="page hidden">
+                    <div class="card">
+                        <h3 class="card-title">Hospitals & Medical Centers</h3>
+                        <div id="hospitalsList">
+                            <p style="text-align: center; color: #999; padding: 40px;">No hospitals registered yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Records -->
+                <div id="records" class="page hidden">
+                    <div class="card">
+                        <h3 class="card-title">Medical Records</h3>
+                        <div id="recordsList">
+                            <p style="text-align: center; color: #999; padding: 40px;">No medical records found. Your medical history will appear here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat -->
+                <div id="chat" class="page hidden">
+                    <div class="card" style="height: 600px; display: flex; flex-direction: column;">
+                        <h3 class="card-title">AI Health Assistant</h3>
+                        
+                        <div style="display: flex; gap: 20px; flex: 1; overflow: hidden;">
+                            <!-- Sessions List -->
+                            <div style="width: 250px; border-right: 2px solid #e0e0e0; padding-right: 15px; overflow-y: auto;">
+                                <button onclick="createNewSession()" class="btn btn-primary btn-sm" style="width: 100%; margin-bottom: 15px;">
+                                    + New Chat
+                                </button>
+                                <div id="chatSessionsList">
+                                    <p style="text-align: center; color: #999; font-size: 14px;">No chat sessions yet</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Chat Area -->
+                            <div style="flex: 1; display: flex; flex-direction: column;">
+                                <div id="chatMessagesArea" style="flex: 1; overflow-y: auto; padding: 20px; background: #f8f8f8; border-radius: 8px; margin-bottom: 15px;">
+                                    <p style="text-align: center; color: #999; margin-top: 50px;">Select or create a chat session to start</p>
+                                </div>
+                                
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="chatInput" class="form-control" placeholder="Type your health question..." 
+                                           onkeypress="if(event.key==='Enter') sendChatMessage()" disabled>
+                                    <button onclick="sendChatMessage()" class="btn btn-primary" id="sendChatBtn" disabled>Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Book Appointment</h3>
+                <span class="modal-close" onclick="closeAppointmentModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Doctor ID</label>
+                <input type="number" id="modalDoctorId">
+            </div>
+            <div class="form-group">
+                <label>Hospital ID</label>
+                <input type="number" id="modalHospitalId">
+            </div>
+            <div class="form-group">
+                <label>Date & Time</label>
+                <input type="datetime-local" id="modalDateTime">
+            </div>
+            <div class="form-group">
+                <label>Reason for Visit</label>
+                <textarea id="modalReason" rows="3"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="submitAppointment()">Book Appointment</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let token = localStorage.getItem('token');
+        let currentUser = null;
+
+        // Initialize
+        if (token) {
+            checkAuth();
+        }
+
+        // Auth Functions
+        function switchToRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        function switchToLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showError('loginError', 'Please fill in all fields');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                
+                if (res.ok) {
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    await loadUser();
+                    showMainApp();
+                } else {
+                    showError('loginError', data.detail || 'Login failed');
+                }
+            } catch (err) {
+                showError('loginError', 'Connection error: ' + err.message);
+            }
+        }
+
+        async function handleRegister() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const full_name = document.getElementById('regName').value;
+            const phone = document.getElementById('regPhone').value;
+            const date_of_birth = document.getElementById('regDob').value;
+            const gender = document.getElementById('regGender').value;
+
+            if (!email || !password || !full_name || !phone || !date_of_birth) {
+                showError('registerError', 'Please fill in all required fields');
+                return;
+            }
+
+            const data = {
+                email: email,
+                password: password,
+                full_name: full_name,
+                phone: phone,
+                date_of_birth: date_of_birth,
+                gender: gender,
+                address: "",
+                user_type: document.getElementById('regUserType').value
+            };
+
+            console.log('Sending registration data:', data);
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                let result;
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    result = await res.json();
+                } else {
+                    const text = await res.text();
+                    result = { detail: text };
+                }
+                
+                console.log('Registration response:', result);
+                
+                if (res.ok) {
+                    token = result.access_token;
+                    localStorage.setItem('token', token);
+                    await loadUser();
+                    showMainApp();
+                } else {
+                    let errorMsg = 'Registration failed';
+                    if (typeof result.detail === 'string') {
+                        errorMsg = result.detail;
+                    } else if (result.detail && Array.isArray(result.detail)) {
+                        errorMsg = result.detail.map(e => e.msg).join(', ');
+                    } else {
+                        errorMsg = JSON.stringify(result);
+                    }
+                    
+                    // Check for specific errors
+                    if (errorMsg.includes('UNIQUE constraint failed: users.phone')) {
+                        errorMsg = 'This phone number is already registered. Please use a different number or login.';
+                    } else if (errorMsg.includes('UNIQUE constraint failed: users.email')) {
+                        errorMsg = 'This email is already registered. Please login instead.';
+                    } else if (errorMsg.includes('Email already registered')) {
+                        errorMsg = 'This email is already registered. Please login instead.';
+                    }
+                    
+                    showError('registerError', errorMsg);
+                }
+            } catch (err) {
+                showError('registerError', 'Connection error: ' + err.message);
+                console.error('Full error:', err);
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/verify-token`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    await loadUser();
+                    showMainApp();
+                } else {
+                    handleLogout();
+                }
+            } catch (err) {
+                handleLogout();
+            }
+        }
+
+        async function loadUser() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                currentUser = await res.json();
+                document.getElementById('userName').textContent = currentUser.full_name;
+                document.getElementById('userBadge').textContent = currentUser.full_name[0].toUpperCase();
+            } catch (err) {
+                console.error('Error loading user:', err);
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            loadDashboard();
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            token = null;
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="alert alert-error">${message}</div>`;
+            setTimeout(() => el.innerHTML = '', 5000);
+        }
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.remove('hidden');
+            event.target.classList.add('active');
+
+            if (pageId === 'dashboard') loadDashboard();
+            if (pageId === 'appointments') loadAppointments();
+            if (pageId === 'doctors') loadDoctors();
+            if (pageId === 'hospitals') loadHospitals();
+            if (pageId === 'records') loadRecords();
+        }
+
+        // Dashboard
+        async function loadDashboard() {
+            try {
+                const [apptRes, recRes, docRes] = await Promise.all([
+                    fetch(`${API_BASE}/scheduling/appointments/upcoming/count`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch(`${API_BASE}/medical/medical-records/my-records`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch(`${API_BASE}/medical/doctors?limit=100`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                const apptCount = await apptRes.json();
+                const recData = await recRes.json();
+                const docData = await docRes.json();
+
+                document.getElementById('statAppointments').textContent = apptCount;
+                document.getElementById('statRecords').textContent = recData.total || 0;
+                document.getElementById('statDoctors').textContent = docData.total || 0;
+            } catch (err) {
+                console.error('Dashboard error:', err);
+            }
+        }
+
+        // Appointments
+        async function loadAppointments() {
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/appointments`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const tbody = document.querySelector('#appointmentsTable tbody');
+                tbody.innerHTML = data.appointments.map(a => `
+                    <tr>
+                        <td>${a.appointment_id}</td>
+                        <td>Doctor #${a.doctor_id}</td>
+                        <td>${new Date(a.appointment_datetime).toLocaleString()}</td>
+                        <td><span class="badge badge-${a.status === 'scheduled' ? 'success' : 'warning'}">${a.status}</span></td>
+                        <td><button class="btn btn-sm" style="background: #dc3545; color: white;" onclick="cancelAppointment(${a.appointment_id})">Cancel</button></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Appointments error:', err);
+            }
+        }
+
+        function openAppointmentModal() {
+            document.getElementById('appointmentModal').classList.add('show');
+        }
+
+        function closeAppointmentModal() {
+            document.getElementById('appointmentModal').classList.remove('show');
+        }
+
+        async function submitAppointment() {
+            const data = {
+                doctor_id: parseInt(document.getElementById('modalDoctorId').value),
+                hospital_id: parseInt(document.getElementById('modalHospitalId').value),
+                appointment_datetime: document.getElementById('modalDateTime').value,
+                reason_for_visit: document.getElementById('modalReason').value,
+                patient_notes: ''
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert('Appointment booked!');
+                    closeAppointmentModal();
+                    loadAppointments();
+                } else {
+                    alert('Failed to book appointment');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function cancelAppointment(id) {
+            if (!confirm('Cancel this appointment?')) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/scheduling/appointments/${id}/cancel`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    alert('Appointment cancelled');
+                    loadAppointments();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Doctors
+        async function loadDoctors() {
+            try {
+                const res = await fetch(`${API_BASE}/medical/doctors?limit=50`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const list = document.getElementById('doctorsList');
+                list.innerHTML = data.doctors.map(d => `
+                    <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>Doctor #${d.doctor_id}</strong><br>
+                        Specialization: ${d.specialization}<br>
+                        Hospital ID: ${d.hospital_id}
+                    </div>
+                `).join('') || '<p>No doctors found</p>';
+            } catch (err) {
+                console.error('Doctors error:', err);
+            }
+        }
+
+        // Hospitals
+        async function loadHospitals() {
+            try {
+                const res = await fetch(`${API_BASE}/medical/hospitals?limit=50`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const list = document.getElementById('hospitalsList');
+                list.innerHTML = data.hospitals.map(h => `
+                    <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>${h.name}</strong><br>
+                        City: ${h.city}
+                    </div>
+                `).join('') || '<p>No hospitals found</p>';
+            } catch (err) {
+                console.error('Hospitals error:', err);
+            }
+        }
+
+        // Records
+        async function loadRecords() {
+            try {
+                const res = await fetch(`${API_BASE}/medical/medical-records/my-records`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const list = document.getElementById('recordsList');
+                if (data.records && data.records.length > 0) {
+                    list.innerHTML = data.records.map(r => `
+                        <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;">
+                            <strong>Record #${r.record_id}</strong><br>
+                            Diagnosis: ${r.diagnosis}
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No medical records found. Your medical history will appear here.</p>';
+                }
+            } catch (err) {
+                console.error('Records error:', err);
+            }
+        }
+
+        // Chat Functions
+        let currentChatSession = null;
+
+        async function loadChatSessions() {
+            try {
+                const res = await fetch(`${API_BASE}/chatbot/sessions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const sessions = await res.json();
+                
+                const list = document.getElementById('chatSessionsList');
+                if (sessions && sessions.length > 0) {
+                    list.innerHTML = sessions.map(s => `
+                        <div onclick="selectChatSession(${s.session_id})" 
+                             style="padding: 10px; border-radius: 6px; cursor: pointer; margin-bottom: 5px; background: ${currentChatSession === s.session_id ? '#667eea' : 'white'}; color: ${currentChatSession === s.session_id ? 'white' : '#333'}; border: 1px solid #e0e0e0;"
+                             id="session-${s.session_id}">
+                            <strong style="font-size: 14px;">${s.session_title || 'Chat Session'}</strong><br>
+                            <small style="opacity: 0.8;">${new Date(s.created_at).toLocaleDateString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="text-align: center; color: #999; font-size: 14px;">No chat sessions yet</p>';
+                }
+            } catch (err) {
+                console.error('Chat sessions error:', err);
+            }
+        }
+
+        async function createNewSession() {
+            try {
+                const res = await fetch(`${API_BASE}/chatbot/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ session_title: 'New Conversation' })
+                });
+                
+                const session = await res.json();
+                currentChatSession = session.session_id;
+                await loadChatSessions();
+                await loadChatMessages(session.session_id);
+                
+                document.getElementById('chatInput').disabled = false;
+                document.getElementById('sendChatBtn').disabled = false;
+            } catch (err) {
+                alert('Error creating session: ' + err.message);
+            }
+        }
+
+        async function selectChatSession(sessionId) {
+            currentChatSession = sessionId;
+            await loadChatSessions();
+            await loadChatMessages(sessionId);
+            
+            document.getElementById('chatInput').disabled = false;
+            document.getElementById('sendChatBtn').disabled = false;
+        }
+
+        async function loadChatMessages(sessionId) {
+            try {
+                const res = await fetch(`${API_BASE}/chatbot/sessions/${sessionId}/messages`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const messages = await res.json();
+                
+                const area = document.getElementById('chatMessagesArea');
+                if (messages && messages.length > 0) {
+                    area.innerHTML = messages.map(m => `
+                        <div style="margin-bottom: 15px; display: flex; justify-content: ${m.role === 'user' ? 'flex-end' : 'flex-start'};">
+                            <div style="max-width: 70%; padding: 12px 16px; border-radius: 12px; background: ${m.role === 'user' ? '#667eea' : 'white'}; color: ${m.role === 'user' ? 'white' : '#333'}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                ${m.content}
+                            </div>
+                        </div>
+                    `).join('');
+                    area.scrollTop = area.scrollHeight;
+                } else {
+                    area.innerHTML = '<p style="text-align: center; color: #999; margin-top: 50px;">Start a conversation with the AI health assistant</p>';
+                }
+            } catch (err) {
+                console.error('Messages error:', err);
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || !currentChatSession) return;
+            
+            input.value = '';
+            input.disabled = true;
+            document.getElementById('sendChatBtn').disabled = true;
+            
+            try {
+                const res = await fetch(`${API_BASE}/chatbot/sessions/${currentChatSession}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: message, attachments: [] })
+                });
+                
+                if (res.ok) {
+                    await loadChatMessages(currentChatSession);
+                } else {
+                    alert('Failed to send message');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                input.disabled = false;
+                document.getElementById('sendChatBtn').disabled = false;
+                input.focus();
+            }
+        }
+
+        // Add search function for doctors
+        async function searchDoctors() {
+            const searchTerm = document.getElementById('doctorSearch').value;
+            let url = `${API_BASE}/medical/doctors?limit=50`;
+            if (searchTerm) {
+                url += `&specialization=${searchTerm}`;
+            }
+            
+            try {
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                const list = document.getElementById('doctorsList');
+                if (data.doctors && data.doctors.length > 0) {
+                    list.innerHTML = data.doctors.map(d => `
+                        <div style="padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;">
+                            <strong>Doctor #${d.doctor_id}</strong><br>
+                            Specialization: ${d.specialization}<br>
+                            Hospital ID: ${d.hospital_id || 'N/A'}
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No doctors found matching your search.</p>';
+                }
+            } catch (err) {
+                console.error('Search error:', err);
+            }
+        }
+    </script>
+</body>
+</html>

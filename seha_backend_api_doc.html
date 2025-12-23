@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Backend API Documentation</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; background: #f9f9f9; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; }
+        
+        /* Sidebar Navigation */
+        .sidebar { width: 250px; position: fixed; height: 100vh; overflow-y: auto; padding-right: 20px; border-right: 1px solid #ddd; }
+        .sidebar h3 { font-size: 1.1em; margin-top: 20px; color: #444; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 5px; font-size: 0.9em; }
+        .sidebar a { text-decoration: none; color: #007bff; transition: color 0.2s; }
+        .sidebar a:hover { color: #0056b3; }
+        
+        /* Main Content */
+        .main { margin-left: 270px; flex: 1; padding-bottom: 50px; }
+        h1 { border-bottom: 3px solid #333; padding-bottom: 10px; }
+        h2 { background: #e9ecef; padding: 10px; border-left: 5px solid #007bff; margin-top: 40px; }
+        
+        /* Endpoint Card */
+        .endpoint { background: white; border: 1px solid #ddd; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .endpoint-header { padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
+        .path { font-family: monospace; font-size: 1.1em; font-weight: bold; }
+        .desc { color: #666; font-size: 0.9em; }
+        
+        /* Methods */
+        .method { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.8em; margin-right: 10px; text-transform: uppercase; }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; color: #333; }
+
+        /* Content Sections */
+        .content { padding: 20px; }
+        .section-label { font-weight: bold; margin-top: 15px; display: block; color: #555; text-transform: uppercase; font-size: 0.8em; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 0.9em; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav class="sidebar">
+        <h3>1. Auth Service</h3>
+        <ul>
+            <li><a href="#auth-root">GET /</a></li>
+            <li><a href="#auth-register">POST /register</a></li>
+            <li><a href="#auth-login">POST /login</a></li>
+            <li><a href="#auth-me">GET /me</a></li>
+            <li><a href="#auth-verify">GET /verify-token</a></li>
+        </ul>
+
+        <h3>2. Medical Service</h3>
+        <ul>
+            <li><a href="#med-root">GET /</a></li>
+            <li><a href="#med-create-doc">POST /doctors</a></li>
+            <li><a href="#med-list-doc">GET /doctors</a></li>
+            <li><a href="#med-get-doc">GET /doctors/{id}</a></li>
+            <li><a href="#med-update-doc">PUT /doctors/{id}</a></li>
+            <li><a href="#med-create-hosp">POST /hospitals</a></li>
+            <li><a href="#med-list-hosp">GET /hospitals</a></li>
+            <li><a href="#med-get-hosp">GET /hospitals/{id}</a></li>
+            <li><a href="#med-create-rec">POST /medical-records</a></li>
+            <li><a href="#med-my-rec">GET /my-records</a></li>
+            <li><a href="#med-get-rec">GET /medical-records/{id}</a></li>
+            <li><a href="#med-update-rec">PUT /medical-records/{id}</a></li>
+            <li><a href="#med-del-rec">DELETE /medical-records/{id}</a></li>
+        </ul>
+
+        <h3>3. Scheduling Service</h3>
+        <ul>
+            <li><a href="#sch-root">GET /</a></li>
+            <li><a href="#sch-create">POST /appointments</a></li>
+            <li><a href="#sch-list">GET /appointments</a></li>
+            <li><a href="#sch-get">GET /appointments/{id}</a></li>
+            <li><a href="#sch-update">PUT /appointments/{id}</a></li>
+            <li><a href="#sch-delete">DELETE /appointments/{id}</a></li>
+            <li><a href="#sch-cancel">PATCH /cancel</a></li>
+            <li><a href="#sch-doc-apps">GET /doctors/{id}/apps</a></li>
+            <li><a href="#sch-count">GET /upcoming/count</a></li>
+        </ul>
+
+        <h3>4. Chatbot Service</h3>
+        <ul>
+            <li><a href="#chat-root">GET /</a></li>
+            <li><a href="#chat-health">GET /health</a></li>
+            <li><a href="#chat-create">POST /sessions</a></li>
+            <li><a href="#chat-list">GET /sessions</a></li>
+            <li><a href="#chat-get">GET /sessions/{id}</a></li>
+            <li><a href="#chat-del">DELETE /sessions/{id}</a></li>
+            <li><a href="#chat-send">POST /messages</a></li>
+            <li><a href="#chat-msgs">GET /messages</a></li>
+        </ul>
+    </nav>
+
+    <div class="main">
+        <h1>Backend API Documentation</h1>
+        <p>Comprehensive documentation for Auth, Medical, Scheduling, and Healthcare Chatbot services.</p>
+
+        <h2 id="auth">1. Auth Service</h2>
+
+        <div id="auth-root" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/</span></div>
+                <div class="desc">Read Root (Health Check)</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <div id="auth-register" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/register</span></div>
+                <div class="desc">Register a new user</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "email": "user@example.com",
+  "password": "string",
+  "full_name": "string",
+  "phone": "string",
+  "date_of_birth": "2025-12-22",
+  "gender": "string",
+  "address": "string",
+  "user_type": "patient"
+}</pre>
+                <span class="section-label">Response (201 Created):</span>
+                <pre>{
+  "access_token": "string",
+  "token_type": "string",
+  "user": {
+    "user_id": 0,
+    "email": "string",
+    "full_name": "string",
+    "created_at": "2025-12-22T19:22:52.994Z"
+  }
+}</pre>
+            </div>
+        </div>
+
+        <div id="auth-login" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/login</span></div>
+                <div class="desc">Login user</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "email": "user@example.com",
+  "password": "string"
+}</pre>
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "access_token": "string",
+  "token_type": "string"
+}</pre>
+            </div>
+        </div>
+
+        <div id="auth-me" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/me</span></div>
+                <div class="desc">Get Current User Info</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "user_id": 0,
+  "email": "string",
+  "full_name": "string",
+  "user_type": "string",
+  "created_at": "2025-12-22T19:22:52.994Z"
+}</pre>
+            </div>
+        </div>
+
+        <div id="auth-verify" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/verify-token</span></div>
+                <div class="desc">Verify JWT Token (Internal)</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <h2 id="medical">2. Medical Service</h2>
+
+        <div id="med-root" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/</span></div>
+                <div class="desc">Health Check</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <div id="med-create-doc" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/doctors</span></div>
+                <div class="desc">Create Doctor Profile</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "specialization": "string",
+  "license_number": "string",
+  "hospital_id": 0,
+  "qualifications": "string",
+  "availability_schedule": "string",
+  "is_available_online": false
+}</pre>
+                <span class="section-label">Response (201 Created):</span>
+                <pre>{
+  "doctor_id": 0,
+  "specialization": "string",
+  "user_id": 0,
+  "created_at": "2025-12-22T19:24:55.336Z"
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-list-doc" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/doctors</span></div>
+                <div class="desc">List Doctors</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Query Params:</span> specialization, hospital_id, is_available_online, skip, limit
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "total": 0,
+  "doctors": [
+    {
+      "doctor_id": 0,
+      "specialization": "string",
+      "hospital_id": 0
+    }
+  ]
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-get-doc" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/doctors/{doctor_id}</span></div>
+                <div class="desc">Get Doctor Details</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "specialization": "string",
+  "license_number": "string",
+  "hospital_id": 0,
+  "doctor_id": 0,
+  "user_id": 0
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-update-doc" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method put">PUT</span> <span class="path">/doctors/{doctor_id}</span></div>
+                <div class="desc">Update Doctor</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "specialization": "string",
+  "hospital_id": 0,
+  "qualifications": "string",
+  "is_available_online": true
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-create-hosp" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/hospitals</span></div>
+                <div class="desc">Create Hospital</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "name": "string",
+  "address": "string",
+  "city": "string",
+  "phone": "string",
+  "has_emergency": false
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-list-hosp" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/hospitals</span></div>
+                <div class="desc">List Hospitals</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Query Params:</span> city, has_emergency, skip, limit
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "total": 0,
+  "hospitals": [ { "name": "string", "city": "string", "hospital_id": 0 } ]
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-get-hosp" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/hospitals/{hospital_id}</span></div>
+                <div class="desc">Get Hospital Details</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "hospital_id": 0, "name": "string", "address": "string" }</pre>
+            </div>
+        </div>
+
+        <div id="med-create-rec" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/medical-records</span></div>
+                <div class="desc">Create Medical Record</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "diagnosis": "string",
+  "prescription": "string",
+  "tests_ordered": "string",
+  "doctor_notes": "string",
+  "visit_date": "2025-12-22T19:24:55.366Z",
+  "user_id": 0,
+  "doctor_id": 0
+}</pre>
+            </div>
+        </div>
+
+        <div id="med-my-rec" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/medical-records/my-records</span></div>
+                <div class="desc">Get My Records</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "total": 0, "records": [ { "diagnosis": "string", "record_id": 0 } ] }</pre>
+            </div>
+        </div>
+
+        <div id="med-get-rec" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/medical-records/{record_id}</span></div>
+                <div class="desc">Get Specific Record</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "diagnosis": "string", "prescription": "string", "record_id": 0 }</pre>
+            </div>
+        </div>
+
+        <div id="med-update-rec" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method put">PUT</span> <span class="path">/medical-records/{record_id}</span></div>
+                <div class="desc">Update Medical Record</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{ "diagnosis": "string", "prescription": "string" }</pre>
+            </div>
+        </div>
+
+        <div id="med-del-rec" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method delete">DELETE</span> <span class="path">/medical-records/{record_id}</span></div>
+                <div class="desc">Delete Medical Record</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (204 No Content)</span>
+            </div>
+        </div>
+
+        <h2 id="scheduling">3. Scheduling Service</h2>
+
+        <div id="sch-root" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/</span></div>
+                <div class="desc">Read Root</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <div id="sch-create" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/appointments</span></div>
+                <div class="desc">Create Appointment</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "doctor_id": 0,
+  "hospital_id": 0,
+  "appointment_datetime": "2025-12-22T19:25:41.384Z",
+  "reason_for_visit": "string",
+  "patient_notes": "string"
+}</pre>
+                <span class="section-label">Response (201 Created):</span>
+                <pre>{
+  "appointment_id": 0,
+  "status": "scheduled",
+  "created_at": "2025-12-22T19:25:41.385Z"
+}</pre>
+            </div>
+        </div>
+
+        <div id="sch-list" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/appointments</span></div>
+                <div class="desc">List Appointments</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Query Params:</span> status, skip, limit
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "total": 0,
+  "appointments": [ { "appointment_id": 0, "status": "string" } ]
+}</pre>
+            </div>
+        </div>
+
+        <div id="sch-get" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/appointments/{appointment_id}</span></div>
+                <div class="desc">Get Appointment</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "appointment_id": 0, "doctor_id": 0, "status": "string" }</pre>
+            </div>
+        </div>
+
+        <div id="sch-update" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method put">PUT</span> <span class="path">/appointments/{appointment_id}</span></div>
+                <div class="desc">Update Appointment</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "appointment_datetime": "2025-12-22T19:25:41.356Z",
+  "status": "cancelled",
+  "reason_for_visit": "string"
+}</pre>
+            </div>
+        </div>
+
+        <div id="sch-delete" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method delete">DELETE</span> <span class="path">/appointments/{appointment_id}</span></div>
+                <div class="desc">Delete Appointment</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (204 No Content)</span>
+            </div>
+        </div>
+
+        <div id="sch-cancel" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method patch">PATCH</span> <span class="path">/appointments/{appointment_id}/cancel</span></div>
+                <div class="desc">Cancel Appointment</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "appointment_id": 0, "status": "cancelled" }</pre>
+            </div>
+        </div>
+
+        <div id="sch-doc-apps" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/doctors/{doctor_id}/appointments</span></div>
+                <div class="desc">Get Doctor Appointments</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Query Params:</span> date, status
+                <span class="section-label">Response (200 OK):</span>
+                <pre>[ { "appointment_id": 0, "patient_id": 0, "datetime": "..." } ]</pre>
+            </div>
+        </div>
+
+        <div id="sch-count" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/appointments/upcoming/count</span></div>
+                <div class="desc">Count Upcoming Appointments</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"integer"</pre>
+            </div>
+        </div>
+
+        <h2 id="chatbot">4. Healthcare Chatbot Service</h2>
+
+        <div id="chat-root" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/</span></div>
+                <div class="desc">Root</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <div id="chat-health" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/health</span></div>
+                <div class="desc">Health Check</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <div id="chat-create" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/sessions</span></div>
+                <div class="desc">Create Chat Session</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{ "session_title": "New Conversation" }</pre>
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "session_id": 0, "session_title": "string", "is_active": true }</pre>
+            </div>
+        </div>
+
+        <div id="chat-list" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/sessions</span></div>
+                <div class="desc">List Sessions</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>[ { "session_id": 0, "session_title": "string", "last_message_at": "..." } ]</pre>
+            </div>
+        </div>
+
+        <div id="chat-get" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/sessions/{session_id}</span></div>
+                <div class="desc">Get Session Details</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{ "session_id": 0, "user_id": 0, "session_title": "string" }</pre>
+            </div>
+        </div>
+
+        <div id="chat-del" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method delete">DELETE</span> <span class="path">/sessions/{session_id}</span></div>
+                <div class="desc">Delete Session</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>"string"</pre>
+            </div>
+        </div>
+
+        <div id="chat-send" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method post">POST</span> <span class="path">/sessions/{session_id}/messages</span></div>
+                <div class="desc">Send Message</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Request Body:</span>
+                <pre>{
+  "content": "string",
+  "attachments": ["string"]
+}</pre>
+                <span class="section-label">Response (200 OK):</span>
+                <pre>{
+  "user_message": { "role": "user", "content": "string" },
+  "assistant_message": { "role": "assistant", "content": "string" }
+}</pre>
+            </div>
+        </div>
+
+        <div id="chat-msgs" class="endpoint">
+            <div class="endpoint-header">
+                <div><span class="method get">GET</span> <span class="path">/sessions/{session_id}/messages</span></div>
+                <div class="desc">Get Messages</div>
+            </div>
+            <div class="content">
+                <span class="section-label">Response (200 OK):</span>
+                <pre>[
+  { "message_id": 0, "role": "user", "content": "string" },
+  { "message_id": 1, "role": "assistant", "content": "string" }
+]</pre>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

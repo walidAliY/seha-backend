@@ -2,8 +2,7 @@ import os
 from typing import List, Dict
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage
-import requests
+import logging
 
 class ChatbotEngine:
     """Healthcare Chatbot Engine using LangChain and Gemini API"""
@@ -88,6 +87,7 @@ Respond naturally and conversationally."""
             response = chain.invoke({})
             return response.content
         except Exception as e:
+            logging.error(f"I apologize, but I'm having trouble processing your request. Please try again. Error: {str(e)}")
             return f"I apologize, but I'm having trouble processing your request. Please try again. Error: {str(e)}"
     
     def _check_for_actions(self, message: str, user_context: Dict) -> str:
